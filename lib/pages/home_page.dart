@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:movie_db/api/api_call.dart';
 import 'dart:developer' as developer;
+
+import 'package:movie_db/cubit/movie_cubit.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -49,8 +52,9 @@ class _HomePageState extends State<HomePage> {
         child: ElevatedButton(
           onPressed: () {
             _callGetMovies();
+            context.read<MovieCubit>().getMovieList();
           },
-          child: const Text("refresh"),
+          child: Text(_isLoading ? "refresh" : "asd"),
         ),
       ),
     );
