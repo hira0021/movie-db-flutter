@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 void logError(String message) {
   final stackTrace = StackTrace.current;
 
@@ -9,8 +11,12 @@ void logError(String message) {
     final filePath = match.group(2);
     final lineNumber = match.group(3);
 
-    print("Error: $message\n  At: $filePath (line $lineNumber) in $functionName");
+    developer.log("Error: $message\n  At: $filePath (line $lineNumber) in $functionName");
   } else {
-    print("Error: $message (location unknown)");
+    developer.log("Error: $message (location unknown)");
   }
+}
+
+void logUtil(String? title, String? message) {
+    developer.log("title = $title, message = $message");
 }
