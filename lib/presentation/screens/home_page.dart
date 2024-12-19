@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 
 import 'package:movie_db/cubit/movies_cubit.dart';
 import 'package:movie_db/models/movie_model.dart';
-import 'package:movie_db/utils/general_state.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -13,15 +13,38 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final PagingController<int, MovieModel> _pagingController =
+      PagingController(firstPageKey: 1);
 
   @override
   void initState() {
     super.initState();
-    _fetchMovies();
+    _pagingController.addPageRequestListener((pageKey) {
+      _fetchMovies(pageKey);
+    });
   }
 
-  Future<void> _fetchMovies() async {
-    await context.read<MoviesCubit>().getMovieList();
+  Future<void> _fetchMovies(int page) async {
+    try {
+      final moviesCubit = context.read<MoviesCubit>();
+      final response = await moviesCubit.getPaginatedMovieList(
+        queryParams: {
+          'page': page.toString(),
+        },
+      );
+
+      final movies = response.results;
+      final totalPages = response.totalPages;
+
+      if (page >= totalPages) {
+        _pagingController.appendLastPage(movies);
+      } else {
+        final nextPageKey = page + 1;
+        _pagingController.appendPage(movies, nextPageKey);
+      }
+    } catch (error) {
+      _pagingController.error = error;
+    }
   }
 
   @override
@@ -33,32 +56,38 @@ class _HomePageState extends State<HomePage> {
       body: Column(
         children: [
           Expanded(
-            child: BlocBuilder<MoviesCubit, GeneralState<List<MovieModel>>>(
-              builder: (context, state) {
-                if (state is LoadingState<List<MovieModel>>) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (state is SuccessState<List<MovieModel>>) {
-                  final movies = state.data;
-                  return ListView.builder(
-                    itemCount: movies.length,
-                    itemBuilder: (context, index) {
-                      final movie = movies[index];
-                      return ListTile(
-                        title: Text(movie.title),
-                        subtitle: Text(movie.overview),
-                      );
-                    },
+            child: PagedListView<int, MovieModel>(
+              pagingController: _pagingController,
+              builderDelegate: PagedChildBuilderDelegate<MovieModel>(
+                itemBuilder: (context, movie, index) {
+                  return ListTile(
+                    title: Text(movie.title),
+                    subtitle: Text(movie.overview),
                   );
-                } else if (state is ErrorState<List<MovieModel>>) {
-                  return Center(child: Text("Error: ${state.message}"));
-                }
-
-                return const Center(child: Text("No movies available."));
-              },
+                },
+                firstPageErrorIndicatorBuilder: (context) => const Center(
+                  child: Text("Error loading movies."),
+                ),
+                newPageErrorIndicatorBuilder: (context) => const Center(
+                  child: Text("Error loading more movies."),
+                ),
+                firstPageProgressIndicatorBuilder: (context) => const Center(
+                  child: CircularProgressIndicator(),
+                ),
+                newPageProgressIndicatorBuilder: (context) => const Center(
+                  child: CircularProgressIndicator(),
+                ),
+              ),
             ),
           ),
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _pagingController.dispose();
+    super.dispose();
   }
 }

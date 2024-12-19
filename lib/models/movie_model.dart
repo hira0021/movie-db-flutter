@@ -14,7 +14,6 @@ class MovieModel {
     required this.releaseDate,
   });
 
-
   MovieModel copyWith({
     int? id,
     String? title,

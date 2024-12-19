@@ -3,12 +3,13 @@ import 'dart:convert';
 import 'package:movie_db/data/api/endpoints.dart';
 import 'package:movie_db/data/data_provider/movie_data_provider.dart';
 import 'package:movie_db/models/movie_model.dart';
+import 'package:movie_db/models/paginated_response_model.dart';
 
 class MovieRepository {
   final MovieDataProvider movieDataProvider;
   MovieRepository(this.movieDataProvider);
 
-  Future<List<MovieModel>> getMovieList({
+  Future<PaginatedResponseModel<MovieModel>> getPaginatedMovieList({
     required Map<String, String> headers,
     Map<String, String>? queryParams,
   }) async {
@@ -29,7 +30,12 @@ class MovieRepository {
           .map((json) => MovieModel.fromMap(json))
           .toList();
 
-      return movies;
+      return PaginatedResponseModel<MovieModel>(
+        page: data['page'] as int,
+        results: movies,
+        totalPages: data['total_pages'] as int,
+        totalResults: data['total_results'] as int,
+      );
     } catch (e) {
       throw e.toString();
     }
