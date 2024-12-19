@@ -3,8 +3,7 @@ abstract class GeneralState<T> {}
 class InitialState<T> extends GeneralState<T> {}
 
 class LoadingState<T> extends GeneralState<T> {
-  final bool isPagination;
-  LoadingState({this.isPagination = false});
+  LoadingState();
 }
 
 class SuccessState<T> extends GeneralState<T> {
@@ -14,6 +13,5 @@ class SuccessState<T> extends GeneralState<T> {
 
 class ErrorState<T> extends GeneralState<T> {
   final String message;
-  final bool isPagination;
-  ErrorState(this.message, {this.isPagination = false});
+  ErrorState(this.message);
 }

@@ -18,5 +18,5 @@ void logError(String message) {
 }
 
 void logUtil(String? title, String? message) {
-    developer.log("title = $title, message = $message");
+    developer.log("$title: $message");
 }

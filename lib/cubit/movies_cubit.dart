@@ -9,20 +9,13 @@ class MoviesCubit extends Cubit<GeneralState<List<MovieModel>>> {
   final MovieRepository movieRepository;
 
   int _currentPage = 1;
-  bool _isFetching = false;
 
   MoviesCubit(this.movieRepository) : super(LoadingState<List<MovieModel>>());
 
   int get currentPage => _currentPage;
-  bool get isFetchingPagination => _isFetching && _currentPage > 1;
 
   Future<void> getMovieList({Map<String, String>? queryParams}) async {
-    if (_isFetching) return;
-    _isFetching = true;
-
     try {
-      final isPagination =
-          queryParams != null && queryParams.containsKey('page');
       emit(LoadingState<List<MovieModel>>());
 
       final headers = {
@@ -50,10 +43,7 @@ class MoviesCubit extends Cubit<GeneralState<List<MovieModel>>> {
       _currentPage++;
     } catch (error) {
       logError("Failed to fetch movies: $error");
-      emit(ErrorState<List<MovieModel>>(error.toString(),
-          isPagination: queryParams != null));
-    } finally {
-      _isFetching = false;
+      emit(ErrorState<List<MovieModel>>(error.toString()));
     }
   }
 
